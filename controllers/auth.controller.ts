@@ -22,7 +22,6 @@ const setAuthCookies = (res: Response, accessToken: string, refreshToken: string
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 };
-
 const clearAuthCookies = (res: Response) => {
   res.clearCookie("accessToken", cookieOptions);
   res.clearCookie("refreshToken", cookieOptions);
@@ -53,7 +52,21 @@ export const register = async (req: AuthenticatedRequest, res: Response) => {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Registration failed";
 
-    return res.status(409).json({
+    if (message.includes("already registered") || message.includes("already taken")) {
+      return res.status(409).json({
+        success: false,
+        message,
+      });
+    }
+
+    if (message.includes("Database unavailable")) {
+      return res.status(503).json({
+        success: false,
+        message,
+      });
+    }
+
+    return res.status(500).json({
       success: false,
       message,
     });
@@ -84,6 +97,13 @@ export const login = async (req: AuthenticatedRequest, res: Response) => {
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Login failed";
+
+    if (message.includes("Database unavailable")) {
+      return res.status(503).json({
+        success: false,
+        message,
+      });
+    }
 
     return res.status(401).json({
       success: false,

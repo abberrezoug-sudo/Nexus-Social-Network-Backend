@@ -4,7 +4,8 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-
+///
+import authRoutes from "./routes/auth.routes.js"
 const app = express();
 
 app.use(helmet());
@@ -24,7 +25,7 @@ app.get("/", (_req, res) => {
     message: "Nexus API is running",
   });
 });
-
+app.use("/api/auth", authRoutes);
 app.use((_req, res) => {
   res.status(404).json({
     status: "error",

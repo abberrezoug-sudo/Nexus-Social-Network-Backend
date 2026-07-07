@@ -1,0 +1,11 @@
+[
+  {
+    "_id": "1783453250878-87a18f929b594",
+    "firstName": "Test",
+    "lastName": "User",
+    "username": "persistuser",
+    "email": "persist@example.com",
+    "password": "$2b$10$eylpWDM3gIgLsiFdxOGNCeX1Dzo5gHY3YzZcrz3VOA.4/TBbkhhc6",
+    "role": "user"
+  }
+]

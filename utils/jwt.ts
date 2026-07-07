@@ -1,9 +1,14 @@
 import jwt from "jsonwebtoken";
 
+const getJwtSecret = (envKey: "JWT_SECRET" | "JWT_REFRESH_SECRET", fallback: string) => {
+  const value = process.env[envKey];
+  return value && value.trim() ? value : fallback;
+};
+
 export const generateAccessToken = (userId: string) => {
   return jwt.sign(
     { id: userId },
-    process.env.JWT_SECRET as string,
+    getJwtSecret("JWT_SECRET", "dev-access-secret"),
     {
       expiresIn: "15m",
     }
@@ -13,7 +18,7 @@ export const generateAccessToken = (userId: string) => {
 export const generateRefreshToken = (userId: string) => {
   return jwt.sign(
     { id: userId },
-    process.env.JWT_REFRESH_SECRET as string,
+    getJwtSecret("JWT_REFRESH_SECRET", "dev-refresh-secret"),
     {
       expiresIn: "7d",
     }

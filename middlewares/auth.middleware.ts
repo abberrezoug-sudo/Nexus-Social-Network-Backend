@@ -5,9 +5,21 @@ import { AuthRepository } from "../repositories/auth.repository.js";
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
-    email: string;
+    firstName: string;
+    lastName: string;
     username: string;
+    email: string;
+    avatar: string;
+    coverImage: string;
+    bio: string;
+    website: string;
+    location: string;
     role: string;
+    isVerified: boolean;
+    followersCount: number;
+    followingCount: number;
+    postsCount: number;
+    createdAt: Date;
   };
 }
 
@@ -36,11 +48,25 @@ export const authMiddleware = async (
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
+    const profileUser = user as Record<string, unknown>;
+
     req.user = {
-      id: user._id.toString(),
-      email: user.email,
-      username: user.username,
-      role: user.role,
+      id: String(profileUser._id ?? profileUser.id ?? ""),
+      firstName: String(profileUser.firstName ?? ""),
+      lastName: String(profileUser.lastName ?? ""),
+      username: String(profileUser.username ?? ""),
+      email: String(profileUser.email ?? ""),
+      avatar: String(profileUser.avatar ?? ""),
+      coverImage: String(profileUser.coverImage ?? ""),
+      bio: String(profileUser.bio ?? ""),
+      website: String(profileUser.website ?? ""),
+      location: String(profileUser.location ?? ""),
+      role: String(profileUser.role ?? "user"),
+      isVerified: Boolean(profileUser.isVerified ?? false),
+      followersCount: Number(profileUser.followersCount ?? 0),
+      followingCount: Number(profileUser.followingCount ?? 0),
+      postsCount: Number(profileUser.postsCount ?? 0),
+      createdAt: profileUser.createdAt instanceof Date ? profileUser.createdAt : new Date(String(profileUser.createdAt ?? Date.now())),
     };
 
     next();

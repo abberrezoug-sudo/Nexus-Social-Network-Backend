@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import User from "../models/User.ts";
+import { AuthRepository } from "../repositories/auth.repository.js";
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -15,6 +15,8 @@ const getAccessTokenSecret = () => {
   return process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || "dev-access-secret";
 };
 
+const authRepository = new AuthRepository();
+
 export const authMiddleware = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -28,7 +30,7 @@ export const authMiddleware = async (
     }
 
     const decoded = jwt.verify(token, getAccessTokenSecret()) as { id: string };
-    const user = await User.findById(decoded.id).select("-password");
+    const user = await authRepository.findById(decoded.id);
 
     if (!user) {
       return res.status(401).json({ success: false, message: "Unauthorized" });

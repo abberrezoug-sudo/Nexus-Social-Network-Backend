@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 
-const getJwtSecret = (envKey: "JWT_ACCESS_SECRET" | "JWT_REFRESH_SECRET" | "JWT_SECRET", fallback: string) => {
-  const value = process.env[envKey];
-  return value && value.trim() ? value : fallback;
+const getJwtSecret = (envKey: "JWT_ACCESS_SECRET" | "JWT_REFRESH_SECRET", fallback: string) => {
+  const value = process.env[envKey] || process.env.JWT_SECRET;
+  return value?.trim() || fallback;
 };
 
 export const generateAccessToken = (userId: string) => {

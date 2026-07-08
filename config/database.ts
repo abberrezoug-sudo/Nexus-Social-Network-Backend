@@ -8,6 +8,11 @@ export const connectDatabase = async (): Promise<void> => {
     return;
   }
 
-  await mongoose.connect(mongoUri);
-  console.log("MongoDB connected");
+  try {
+    await mongoose.connect(mongoUri);
+    console.log("MongoDB connected");
+  } catch (error) {
+    console.warn("MongoDB unavailable. Falling back to local JSON storage.");
+    console.warn(error instanceof Error ? error.message : error);
+  }
 };

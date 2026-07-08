@@ -32,6 +32,15 @@ const isDatabaseUnavailableError = (error: unknown) => {
   return false;
 };
 
+const getEntityId = (entity: unknown) => {
+  if (!entity || typeof entity !== "object") {
+    return "";
+  }
+
+  const record = entity as { _id?: unknown; id?: unknown };
+  return String(record._id ?? record.id ?? "");
+};
+
 export class AuthService {
   private repo = new AuthRepository();
 
@@ -139,5 +148,67 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async updateProfile(userId: string, updateData: Record<string, unknown>) {
+    try {
+      if (updateData.email) {
+        const existing = await this.repo.findByEmail(String(updateData.email));
+
+        if (existing) {
+          const existingId = getEntityId(existing);
+          if (existingId && existingId !== String(userId)) {
+            throw new Error("Email already taken");
+          }
+        }
+      }
+
+      if (updateData.username) {
+        const existingUsername = await this.repo.findByUsername(String(updateData.username));
+
+        if (existingUsername) {
+          const existingUsernameId = getEntityId(existingUsername);
+          if (existingUsernameId && existingUsernameId !== String(userId)) {
+            throw new Error("Username already taken");
+          }
+        }
+      }
+
+      // Do not allow password updates through the profile endpoint here.
+      if (updateData.password) {
+        delete updateData.password;
+      }
+
+      const updated = await this.repo.updateById(userId, updateData);
+
+      if (!updated) {
+        throw new Error("User not found");
+      }
+
+      const profile = updated as Record<string, unknown>;
+
+      return {
+        message: "Profile updated successfully",
+        user: {
+          id: String(profile._id ?? profile.id ?? userId),
+          firstName: String(profile.firstName ?? ""),
+          lastName: String(profile.lastName ?? ""),
+          username: String(profile.username ?? ""),
+          email: String(profile.email ?? ""),
+          role: String(profile.role ?? "user"),
+          avatar: String(profile.avatar ?? ""),
+          coverImage: String(profile.coverImage ?? ""),
+          bio: String(profile.bio ?? ""),
+          website: String(profile.website ?? ""),
+          location: String(profile.location ?? ""),
+        },
+      };
+    } catch (error: unknown) {
+      if (isDatabaseUnavailableError(error)) {
+        throw new Error("Database unavailable. Please check your MongoDB connection.");
+      }
+
+      throw error;
+    }
   }
 }

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import mongoose from "mongoose";
-import User from "../models/User.ts";
+import User from "../models/User.js";
 
 type StoredUser = {
   _id: string;
@@ -110,5 +110,30 @@ export class AuthRepository {
     }
 
     return User.create(data);
+  }
+
+  async updateById(id: string, updates: Record<string, unknown>) {
+    if (useInMemoryStore()) {
+      const users = getFallbackUsers();
+      const existing = users.get(id);
+
+      if (!existing) {
+        return null;
+      }
+
+      const merged: StoredUser = {
+        ...existing,
+        ...Object.fromEntries(Object.entries(updates).filter(([k]) => k !== "_id" && k !== "id")),
+      } as StoredUser;
+
+      users.set(id, merged);
+      persistUsersToDisk(users.values());
+
+      const { password, ...rest } = merged;
+      return rest as Record<string, unknown>;
+    }
+
+    const updated = await User.findByIdAndUpdate(id, updates, { new: true }).select("-password");
+    return updated;
   }
 }

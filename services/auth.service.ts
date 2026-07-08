@@ -64,18 +64,18 @@ export class AuthService {
         password: hashedPassword,
       });
 
-      const accessToken = generateAccessToken(user._id.toString());
-      const refreshToken = generateRefreshToken(user._id.toString());
+      const accessToken = generateAccessToken(String((user as any)._id ?? (user as any).id ?? ""));
+      const refreshToken = generateRefreshToken(String((user as any)._id ?? (user as any).id ?? ""));
 
       return {
         message: "User registered successfully",
         user: {
-          id: user._id.toString(),
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: user.username,
-          email: user.email,
-          role: user.role,
+          id: String((user as any)._id ?? (user as any).id ?? ""),
+          firstName: (user as any).firstName,
+          lastName: (user as any).lastName,
+          username: (user as any).username,
+          email: (user as any).email,
+          role: (user as any).role,
         },
         accessToken,
         refreshToken,
@@ -101,24 +101,25 @@ export class AuthService {
         throw new Error("Invalid credentials");
       }
 
-      const isPasswordValid = await bcrypt.compare(payload.password, user.password);
+      const isPasswordValid = await bcrypt.compare(payload.password, (user as any).password);
 
       if (!isPasswordValid) {
         throw new Error("Invalid credentials");
       }
 
-      const accessToken = generateAccessToken(user._id.toString());
-      const refreshToken = generateRefreshToken(user._id.toString());
+      const id = String((user as any)._id ?? (user as any).id ?? "");
+      const accessToken = generateAccessToken(id);
+      const refreshToken = generateRefreshToken(id);
 
       return {
         message: "Login successful",
         user: {
-          id: user._id.toString(),
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: user.username,
-          email: user.email,
-          role: user.role,
+          id,
+          firstName: (user as any).firstName,
+          lastName: (user as any).lastName,
+          username: (user as any).username,
+          email: (user as any).email,
+          role: (user as any).role,
         },
         accessToken,
         refreshToken,
@@ -140,8 +141,10 @@ export class AuthService {
       throw new Error("Invalid refresh token");
     }
 
-    const accessToken = generateAccessToken(user._id.toString());
-    const refreshToken = generateRefreshToken(user._id.toString());
+    const id = String((user as any)._id ?? (user as any).id ?? decoded.id);
+
+    const accessToken = generateAccessToken(id);
+    const refreshToken = generateRefreshToken(id);
 
     return {
       message: "Token refreshed successfully",
@@ -211,4 +214,40 @@ export class AuthService {
       throw error;
     }
   }
+
+  async searchProfileById(userId: string) {
+    try {
+      const searchUser = await this.repo.findById(userId);
+
+      if (!searchUser) {
+        throw new Error("User not found");
+      }
+
+      const profile = searchUser as Record<string, unknown>;
+
+      return {
+        message: "Profile fetched successfully",
+        user: {
+          id: String(profile._id ?? profile.id ?? userId),
+          firstName: String(profile.firstName ?? ""),
+          lastName: String(profile.lastName ?? ""),
+          username: String(profile.username ?? ""),
+          email: String(profile.email ?? ""),
+          role: String(profile.role ?? "user"),
+          avatar: String(profile.avatar ?? ""),
+          coverImage: String(profile.coverImage ?? ""),
+          bio: String(profile.bio ?? ""),
+          website: String(profile.website ?? ""),
+          location: String(profile.location ?? ""),
+        },
+      };
+    } catch (error: unknown) {
+      if (isDatabaseUnavailableError(error)) {
+        throw new Error("Database unavailable. Please check your MongoDB connection.");
+      }
+
+      throw error;
+    }
+  }
+
 }

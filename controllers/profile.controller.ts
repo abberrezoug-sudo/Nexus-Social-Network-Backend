@@ -24,7 +24,7 @@ export const updateProfile = async (req: AuthenticatedRequest, res: Response) =>
       });
     }
 
-    // Profile updates should not change passwords.
+    // Strip password updates here — profile endpoint should not change password.
     const data = { ...parsed.data } as Record<string, unknown>;
     if (Object.prototype.hasOwnProperty.call(data, "password")) {
       delete data.password;
@@ -45,5 +45,22 @@ export const updateProfile = async (req: AuthenticatedRequest, res: Response) =>
       success: false,
       message,
     });
+  }
+};
+
+export const getProfile = async (req: any, res: Response) => {
+  try {
+    const id = String(req.params.id ?? "");
+
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Missing user id" });
+    }
+
+    const result = await authService.searchProfileById(id);
+
+    return res.status(200).json({ success: true, message: result.message, user: result.user });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to fetch profile";
+    return res.status(400).json({ success: false, message });
   }
 };

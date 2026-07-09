@@ -5,8 +5,12 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 ///
+import { postRoutes } from "./routes/post.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+
 const app = express();
+
+app.use("/api/posts", postRoutes);
 
 app.use(helmet());
 app.use(cors());

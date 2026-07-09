@@ -250,4 +250,23 @@ export class AuthService {
     }
   }
 
+  async updateAvatar(userId: string, avatarUrl: string) {
+    const updated = await this.repo.updateById(userId, { avatar: avatarUrl });
+
+    if (!updated) {
+      throw new Error("User not found");
+    }
+
+    return { message: "Avatar updated successfully", avatar: avatarUrl };
+  }
+
+  async updateCoverImage(userId: string, imageUrl: string) {
+    const updated = await this.repo.updateById(userId, { coverImage: imageUrl });
+
+    if (!updated) {
+      throw new Error("User not found");
+    }
+
+    return { message: "Cover image updated successfully", coverImage: imageUrl };
+  }
 }

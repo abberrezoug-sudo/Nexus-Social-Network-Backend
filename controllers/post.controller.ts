@@ -96,9 +96,15 @@ export const updatePost = async (req: AuthenticatedRequest, res: Response) => {
       });
     }
 
+    const file = (req as any).file as Express.Multer.File | undefined;
     const updates = Object.fromEntries(
       Object.entries(parsed.data).filter(([, v]) => v !== undefined)
     ) as unknown as { content?: string; image?: string };
+
+    if (file) {
+      const publicId = `${req.user.id}-${Date.now()}`;
+      updates.image = await uploadBufferToCloudinary(file.buffer, "posts", publicId);
+    }
 
     const result = await postService.updatePost(id, req.user.id, updates);
     return res.status(200).json({ success: true, message: result.message, post: result.post });

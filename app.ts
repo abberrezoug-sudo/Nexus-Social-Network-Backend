@@ -10,8 +10,6 @@ import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
-app.use("/api/posts", postRoutes);
-
 app.use(helmet());
 app.use(cors());
 app.use(compression());
@@ -22,6 +20,9 @@ app.use(cookieParser());
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));
 }
+
+app.use("/api/posts", postRoutes);
+app.use("/api/auth", authRoutes);
 
 app.get("/", (_req, res) => {
   res.status(200).json({
